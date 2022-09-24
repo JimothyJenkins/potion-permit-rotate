@@ -1,0 +1,90 @@
+﻿@page "/"
+@using System.Text
+
+
+<PageTitle>Index</PageTitle>
+
+<h1>Potion Permit Save Obfuscation Tool</h1>
+
+Upload an obfuscated save file to de-obfuscate. Upload a de-obfuscated save file to re-obfuscate.
+
+<br />
+
+<p>Save file location: %USERPROFILE%\AppData\LocalLow\MasshiveMedia\Potion Permit\</p>
+
+<br />
+
+<InputFile OnChange="@LoadFile" />
+
+<br />
+<br />
+
+<div>
+    <input @bind="messageText" readonly />
+</div>
+
+<br />
+<br />
+
+<div class="small">
+    Uses <a href="https://github.com/arivera12/BlazorDownloadFile">BlazorDownloadFile</a> from GitHub.
+</div>
+
+@code {
+    [Inject] IBlazorDownloadFileService _blazorDownloadFileService { get; set; }
+    private const string _key = "QDXkW<_(V?cqK.lJ>-*y&zv9prf8biYCFeMxBm6ZnG3H4OuS1UaI5TwtoA#Rs!,7d2@L^gNhj)EP$0";
+
+    public string messageText;
+    private bool isLoading;
+
+    private async Task LoadFile(InputFileChangeEventArgs e)
+    {
+        isLoading = true;
+
+        try
+        {
+            messageText = string.Empty;
+
+            string name = e.File.Name;
+            string outputName = $"{name}.rotated";
+
+            string fileText = await GetFileTextAsync(e.File);
+            string rotatedText = Rot39(fileText);
+
+            byte[] bytes = Encoding.UTF8.GetBytes(rotatedText);
+            string base64 = Convert.ToBase64String(bytes);
+
+            await _blazorDownloadFileService.DownloadFile(outputName, base64, "application/json");
+
+            messageText = "Done";
+        }
+        catch (Exception ex)
+        {
+            messageText = ex.Message;
+        }
+
+        isLoading = false;
+    }
+
+    private async Task<string> GetFileTextAsync(IBrowserFile file)
+    {
+        using Stream stream = file.OpenReadStream();
+        using StreamReader reader = new StreamReader(stream);
+        string text = await reader.ReadToEndAsync();
+
+        return text;
+    }
+
+    public static string Rot39(string input)
+    {
+        char[] charArray = (input ?? string.Empty).ToCharArray();
+
+        for (int index = 0; index < charArray.Length; ++index)
+        {
+            int num = _key.IndexOf(charArray[index]);
+            charArray[index] = num < 0 ? charArray[index] : _key[(num + 39) % 78];
+        }
+
+        return new string(charArray);
+    }
+}
