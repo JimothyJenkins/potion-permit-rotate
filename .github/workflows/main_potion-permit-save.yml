@@ -53,5 +53,5 @@ jobs:
         with:
           app-name: 'potion-permit-save'
           slot-name: 'Production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_FE28D3550F5A44929073481F56F72E5D }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_EAA2980C285A4D8385C01D0E92491065 }}
           package: .
